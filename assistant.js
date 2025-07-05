@@ -4,7 +4,7 @@ const script = registerScript({
   authors: ["Misha Sigma Gucci(tg - @mishasigmagucci)"]
 });
 
-const ClientChatKt = Java.type("net.ccbluex.liquidbounce.utils.client.ClientChatKt")
+const ClientChatKt = Java.type("net.ccbluex.liquidbounce.utils.client.ClientChat")
 const Severity = Java.type("net.ccbluex.liquidbounce.event.events.NotificationEvent.Severity")
 const Slots = Java.type("net.ccbluex.liquidbounce.utils.inventory.Slots")
 const SilentHotbar = Java.type("net.ccbluex.liquidbounce.utils.client.SilentHotbar").INSTANCE
