@@ -74,9 +74,9 @@ script.registerModule({
   }
 }, (mod) => {
   current_slot = assitant_items.none
-  const interaction =  mc.interactionManager
-
+  
   mod.on("gameTick", e => {
+    const interaction =  mc.interactionManager
     switch (current_slot) {
       case assitant_items.disorientation: 
         const disorientation = Slots.All.findSlot(assitant_items.disorientation)
