@@ -1,11 +1,10 @@
 const script = registerScript({
   name: "FT-Assistant",
-  version: "3.0.0",
+  version: "4.0.0",
   authors: ["Misha Sigma Gucci (tg - @mishasigmagucci)"]
 });
 
 const NotificationEvent = Java.type("net.ccbluex.liquidbounce.event.events.NotificationEvent")
-const ReentrantLock = Java.type("java.util.concurrent.locks.ReentrantLock")
 const Slots = Java.type("net.ccbluex.liquidbounce.utils.inventory.Slots")
 const Items = Java.type("net.minecraft.item.Items")
 const ItemSlotType = Java.type("net.ccbluex.liquidbounce.features.module.modules.player.invcleaner.ItemSlotType")
@@ -14,6 +13,11 @@ const HotbarItemSlot = Java.type("net.ccbluex.liquidbounce.utils.inventory.Hotba
 const InventoryUtilsKt = Java.type("net.ccbluex.liquidbounce.utils.inventory.InventoryUtilsKt")
 const SilentHotbat = Java.type("net.ccbluex.liquidbounce.utils.client.SilentHotbar")
 const SlotActionType = Java.type("net.minecraft.screen.slot.SlotActionType")
+const FontManager = Java.type("net.ccbluex.liquidbounce.render.FontManager")
+const Color4b = Java.type("net.ccbluex.liquidbounce.render.engine.type.Color4b")
+const Vec3 = Java.type("net.ccbluex.liquidbounce.render.engine.type.Vec3")
+const RenderShortcutsKt = Java.type("net.ccbluex.liquidbounce.render.RenderShortcutsKt")
+const FontRendererBuffers = Java.type("net.ccbluex.liquidbounce.render.engine.font.FontRendererBuffers")
 
 const key_actions = {
   release: 0,
@@ -73,16 +77,16 @@ script.registerModule({
     })
   }
 }, (mod) => {
-  current_slot = assitant_items.none
+  current_item = assitant_items.none
   
   mod.on("gameTick", e => {
     const interaction =  mc.interactionManager
-    switch (current_slot) {
+    switch (current_item) {
       case assitant_items.disorientation: 
         const disorientation = Slots.All.findSlot(assitant_items.disorientation)
         if (!disorientation) {
           Client.eventManager.callEvent(new NotificationEvent("FT-Assistant", "Дезориентация не найдена", NotificationEvent.Severity.ERROR))
-          current_slot = assitant_items.none
+          current_item = assitant_items.none
           return
         }
 
@@ -102,14 +106,14 @@ script.registerModule({
           Client.eventManager.callEvent(new NotificationEvent("FT-Assistant", "Дезориентация использована", NotificationEvent.Severity.SUCCESS))
         }
 
-        current_slot = assitant_items.none
+        current_item = assitant_items.none
         break
 
       case assitant_items.dust: 
         const dust = Slots.All.findSlot(assitant_items.dust)
         if (!dust) {
           Client.eventManager.callEvent(new NotificationEvent("FT-Assistant", "Явная пыль не найдена", NotificationEvent.Severity.ERROR))
-          current_slot = assitant_items.none
+          current_item = assitant_items.none
           return
         }
 
@@ -129,14 +133,14 @@ script.registerModule({
           Client.eventManager.callEvent(new NotificationEvent("FT-Assistant", "Явная пыль использована", NotificationEvent.Severity.SUCCESS))
         }
 
-        current_slot = assitant_items.none
+        current_item = assitant_items.none
         break
 
       case assitant_items.trap: 
         const trap = Slots.All.findSlot(assitant_items.trap)
         if (!trap) {
           Client.eventManager.callEvent(new NotificationEvent("FT-Assistant", "Трапка не найдена", NotificationEvent.Severity.ERROR))
-          current_slot = assitant_items.none
+          current_item = assitant_items.none
           return
         }
 
@@ -144,7 +148,7 @@ script.registerModule({
           InventoryUtilsKt.openInventorySilently()
 
           interaction.clickSlot(mc.player.currentScreenHandler.syncId, trap.getIdForServer(mc.currentScreen), mc.player.getInventory().selectedSlot, SlotActionType.SWAP, mc.player)
-
+          
           InventoryUtilsKt.useHotbarSlotOrOffhand(new HotbarItemSlot(mc.player.getInventory().selectedSlot), mod.settings.swap_delay.value, mc.player.yaw, mc.player.pitch)
           Client.eventManager.callEvent(new NotificationEvent("FT-Assistant", "Трапка использована", NotificationEvent.Severity.SUCCESS))
           interaction.clickSlot(mc.player.currentScreenHandler.syncId, trap.getIdForServer(mc.currentScreen), mc.player.getInventory().selectedSlot, SlotActionType.SWAP, mc.player)
@@ -156,14 +160,14 @@ script.registerModule({
           Client.eventManager.callEvent(new NotificationEvent("FT-Assistant", "Трапка использована", NotificationEvent.Severity.SUCCESS))
         }
 
-        current_slot = assitant_items.none
+        current_item = assitant_items.none
         break
       
       case assitant_items.aura: 
         const aura = Slots.All.findSlot(assitant_items.aura)
-        if (!slot) {
+        if (!aura) {
           Client.eventManager.callEvent(new NotificationEvent("FT-Assistant", "Божья аура не найдена", NotificationEvent.Severity.ERROR))
-          current_slot = assitant_items.none
+          current_item = assitant_items.none
           return
         }
 
@@ -183,14 +187,14 @@ script.registerModule({
           Client.eventManager.callEvent(new NotificationEvent("FT-Assistant", "Божья аура использована", NotificationEvent.Severity.SUCCESS))
         }
 
-        current_slot = assitant_items.none
+        current_item = assitant_items.none
         break
 
       case assitant_items.tornado: 
         const tornado = Slots.All.findSlot(assitant_items.tornado)
         if (!tornado) {
           Client.eventManager.callEvent(new NotificationEvent("FT-Assistant", "Огненный смерч не найден", NotificationEvent.Severity.ERROR))
-          current_slot = assitant_items.none
+          current_item = assitant_items.none
           return
         }
 
@@ -210,14 +214,14 @@ script.registerModule({
           Client.eventManager.callEvent(new NotificationEvent("FT-Assistant", "Огненный смерч использован", NotificationEvent.Severity.SUCCESS))
         }
 
-        current_slot = assitant_items.none
+        current_item = assitant_items.none
         break
 
       case assitant_items.layer: 
         const layer = Slots.All.findSlot(assitant_items.layer)
         if (!layer) {
           Client.eventManager.callEvent(new NotificationEvent("FT-Assistant", "Пласт не найден", NotificationEvent.Severity.ERROR))
-          current_slot = assitant_items.none
+          current_item = assitant_items.none
           return
         }
 
@@ -237,7 +241,7 @@ script.registerModule({
           Client.eventManager.callEvent(new NotificationEvent("FT-Assistant", "Пласт использован", NotificationEvent.Severity.SUCCESS))
         }
 
-        current_slot = assitant_items.none
+        current_item = assitant_items.none
         break
     }
   })
@@ -250,17 +254,85 @@ script.registerModule({
     const translation_key = e.getKey().getTranslationKey()
 
     if (translation_key == mod.settings.disorientation.value) {
-      current_slot = assitant_items.disorientation
+      current_item = assitant_items.disorientation
     } else if (translation_key == mod.settings.dust.value) {
-      current_slot = assitant_items.dust
+      current_item = assitant_items.dust
     } else if (translation_key == mod.settings.trap.value) {
-      current_slot = assitant_items.trap
+      current_item = assitant_items.trap
     } else if (translation_key == mod.settings.aura.value) {
-      current_slot = assitant_items.aura
+      current_item = assitant_items.aura
     } else if (translation_key == mod.settings.tornado.value) {
-      current_slot = assitant_items.tornado
+      current_item = assitant_items.tornado
     } else if (translation_key == mod.settings.layer.value) {
-      current_slot = assitant_items.layer
+      current_item = assitant_items.layer
     }
+  })
+
+  mod.on("disable", () => {
+    current_item = assitant_items.none
+  })
+
+  function formatKeybind(key) {
+    if (key.value.toString() == "key.keyboard.unknown") {
+      return ""
+    }
+
+    return key.value.toString().replace("key.keyboard.", "")
+  }
+
+  function draw_keybind(font_renderer, setting, x) {
+    const text = font_renderer.process(formatKeybind(setting), Color4b.Companion.WHITE)
+    font_renderer.draw(text, Primitives.float(x - (font_renderer.getStringWidth(text, false) * 0.2) / 2), 18, false, 0, Primitives.float("0.2"))
+  }
+
+  mod.on("overlayRender", e => {
+    const ctx = e.getContext()
+    const matrices = e.getContext().getMatrices()
+    const font_renderer = FontManager.INSTANCE.FONT_RENDERER
+
+    RenderShortcutsKt.renderEnvironmentForGUI(matrices, env => {
+      env.withMatrixStack(() => {
+        matrices.translate((e.getContext().getScaledWindowWidth() - 110) / 2, e.getContext().getScaledWindowHeight() / 2 + 50, 0)
+        
+        RenderShortcutsKt.withColor(env, new Color4b(26, 24, 24, 167), () => {
+          RenderShortcutsKt.drawQuad(env, new Vec3(0, 0, 0), new Vec3(110, 20, 0))
+        })
+
+        RenderShortcutsKt.withColor(env, new Color4b(26, 24, 24, 255), () => {
+          RenderShortcutsKt.drawQuadOutlines(env, new Vec3(0, 0, 0), new Vec3(110, 20, 0))
+        })
+
+        aligment = 2
+        for (k in assitant_items) {
+          if (assitant_items[k] == assitant_items.none) {
+            continue
+          }
+
+          item_stack = Slots.All.findSlot(assitant_items[k])
+          if (item_stack) {
+            item_stack = item_stack.itemStack
+          } else {
+            item_stack = assitant_items[k].getDefaultStack()
+          }
+
+          ctx.drawItem(item_stack, aligment, 2)
+
+          aligment += 18
+        }
+
+        const buffers = new FontRendererBuffers()
+        try {
+          draw_keybind(font_renderer, mod.settings.disorientation, 10)
+          draw_keybind(font_renderer, mod.settings.dust, 28)
+          draw_keybind(font_renderer, mod.settings.trap, 46)
+          draw_keybind(font_renderer, mod.settings.aura, 64)
+          draw_keybind(font_renderer, mod.settings.tornado, 82)
+          draw_keybind(font_renderer, mod.settings.layer, 100)
+          env.commit(font_renderer, buffers)
+        } finally {
+          buffers.draw()
+        }
+      })
+    })
   })
 });
